@@ -1,8 +1,6 @@
 const endpoint = "https://todo.hackrpi.com";
-const addListElement = document.getElementById("add-list");
-const listContainerElement = document.getElementById('list-container');
-const newListInputElement = document.getElementById('new-list-input');
-const API_KEY = "2be3095525d52048f21cc456f6b4b584";
+
+const API_KEY = "INSERT_API_KEY_HERE";
 
 //Get status with /status GET endpoint
 async function getStatus() {
@@ -16,7 +14,7 @@ async function fetchLists() {
 async function addList() {
     const title = newListInputElement.value.trim();
     if (title) {
-       
+        
     }
 }
 
@@ -56,6 +54,9 @@ async function deleteTask(taskId) {
 }
 
 
+const addListElement = document.getElementById("add-list");
+const listContainerElement = document.getElementById('list-container');
+const newListInputElement = document.getElementById('new-list-input');
 
 //Event listeners for menu
 addListElement.addEventListener("click", function(){

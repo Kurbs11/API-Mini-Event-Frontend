@@ -1,31 +1,138 @@
-const endpoint = "https://todo.hackrpi.com";
+const endpoint = "https://todo.hackrpi.com"; 
 
-const API_KEY = "INSERT_API_KEY_HERE";
+const API_KEY = "c21962c4333bd34a45fd0cdcea531f2b";
 
 //Get status with /status GET endpoint
 async function getStatus() {
+try {
+    const response = await fetch(`${endpoint}/status`, { //JS Syntax to include variables formatted in string
+        method: 'GET',
+        headers: {
+            'authorization': API_KEY,
+            'Content-Type': 'application/json'
+        }
+    }
+    );
+    const status = await response.json();
+    document.getElementById("status").innerText = status.message;
+}
+catch(e) {
+    console.error(`Error getting status: ` + e);
+}
+
 }
 
 async function fetchLists() {
-    
+    try{
+        let tempToken = null;
+        let lists = [];
+        do{
+            const response = await fetch(`${endpoint}/GetLists/${tempToken !== null ? "?" + new URLSearchParams({ //Fetch makes a request to the API, in this case requesting lists
+                nextToken: tempToken
+                
+            }) : ""}`, {
+                method: 'GET',
+                headers:{
+                    'authorization': API_KEY,
+                    'Content-Type': 'application/json'
+                }
+                
+            }
+            );
+       
+        const newLists = await response.json();
+        tempToken = "";
+        if(newLists.status == "200"){
+            lists = lists.concat(newLists.lists);
+            tempToken = newLists.nextToken;
+        }
+        }
+        while(tempToken !== null); //Make requests until we don't have a token
+        await renderLists(lists);
+       //return lists;
+    }
+    catch(e) {
+            console.error(e);
+    }
 }
 
 //Adds list through /AddList POST endpoint. 
 async function addList() {
     const title = newListInputElement.value.trim();
-    if (title) {
-        
+    if (title) { //Verifies the input value isn't empty
+        try{
+            const response = await fetch(`${endpoint}/Addlist`, {
+                method: 'POST',
+                headers: {
+                    'authorization': API_KEY,
+                    'Content-Type': 'application/json',
+                },
+                body:JSON.stringify({
+                    listName: title
+                }) 
+
+                
+            }
+            )
+            const newList = await response.json();
+            if(newList.status == "200"){ //If server response is successful...
+                renderList({
+                    id: newList.list.id,
+                    listName: newList.list.listName,
+                    items: []
+                });
+
+            }
+            newListInputElement.value = ''; //Empty the element so you can type new stuff again
+        }
+        catch(e) {
+            console.error('Error adding list:' +error);
+        }
     }
 }
 
 //Deletes list through /DeleteList DELETE endpoint
 async function deleteList(listIdParam) {
-    
+   
 }
 
 //Get all list items using GetListItems GET endpoint until next token is exhausted
 async function getListItems(listIdParam){
-    
+    try {
+        let listItems = [];
+        const getListResponse = await loopRequest();
+        async function loopRequest(newToken=null){
+            const response = await fetch(`${endpoint}/GetListItems/?${newToken !== null ? new URLSearchParams({
+                listId: listIdParam,
+                nextToken: newToken
+            }):new URLSearchParams({
+                    listId: listIdParam
+                })
+            }`, {
+                method: 'GET',
+                headers: {
+                    'authorization': API_KEY,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const newItems = await response.json();
+            if(newItems.status == "200") {
+                listItems = listItems.concat(newItems.listItems);
+                console.log(listItems);
+            }
+
+            if (newItems.nextToken && newItems.nextToken !== null) {
+                return loopRequest(newItems.nextToken);
+            } else{
+                return listItems;
+            }
+
+        }
+       
+        return getListResponse;
+    } catch(e) {
+        console.error('Error getting list items: ' + e);
+    }
 }
 
 //Adds task through /AddListItem post endpoint
